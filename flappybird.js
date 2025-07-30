@@ -1,3 +1,9 @@
+const MODEL_PATH = 'https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4';
+const video = document.getElementById('webcam');
+
+let movenet;
+
+
 
 
 let board;
@@ -170,8 +176,8 @@ function placePipes() {
 
 
 
-function moveBird(e) {
-    if (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX") {
+function moveBird(solbilek, solomuz) {
+    if (solbilek < solomuz) {
         // jump
         velocityY = -3.5;
     
@@ -202,7 +208,80 @@ function detectCollision(a, b) {
     b.y < a.y + a.height: b nesnesinin üst kenarı, a nesnesinin alt kenarından daha yukarıda mı?
     
     Bu dört koşul "aynı anda" sağlanıyorsa, iki dikdörtgenin alanları kesişiyor demektir, yani çarpışma var.
-
     */                
 
 }
+
+//  const sol_omuz = arrayOutput[0][0][5][0]; // henüz kullanmadım
+//  const sol_bilek = arrayOutput[0][0][9][0]; // y koordinatları
+
+async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazır eden ana fonksiyon
+    
+    // 1. Kullanıcıdan kamera izni iste ve video akışını başlat
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            'video': true
+        });
+
+        video.srcObject = stream;
+    } catch (err) {
+        console.log("kamera başlatılamadı: " + err);
+        return;
+    }       
+
+    movenet = await tf.loadGraphModel(MODEL_PATH, {fromTFHub: true});
+    video.addEventListener('loadeddata', runPredictionLoop())     // 3. Video oynamaya hazır olduğunda, tahmin döngüsünü başlat
+
+}
+
+
+async function runPredictionLoop() {
+
+    if (movenet && video.readyState >= 3) { // readyState, videonun oynatılmaya hazır olup olmadığı hakkında bilgi verir.
+
+        let imageTensor = tf.browser.fromPixels(video);     // 1. Video'nun o anki karesini bir tensöre dönüştür
+
+        const videoHeight = video.videoHeight;
+        const videoWidth = video.videoWidth;
+
+        const cropSize = Math.min(videoHeight, videoWidth); // Kırpılacak karenin boyutunu, videonun en küçük kenarı olarak belirle.
+
+        const cropStartPoint = [          // Kırpmanın başlayacağı noktaları, kareyi videonun merkezine oturtacak şekilde hesapla.
+
+            (videoHeight - cropSize) / 2, // Y (dikey) başlangıç noktası
+            (videoWidth - cropSize) / 2,  // X (yatay) başlangıç noktası
+            0                             // Renk kanalı başlangıcı (her zaman 0)
+        ];
+        let croppedTensor  = tf.slice(imageTensor, cropStartPoint, [cropSize, cropSize, 3]); // 2. Görüntüyü kırp (aynı mantıkla)
+
+        let resizedTensor = tf.image.resizeBilinear(croppedTensor, [192, 192], true).toInt(); // 3. Yeniden boyutlandır
+
+         // 4. Batch boyutu ekle
+        let tensorOutput = movenet.execute(tf.expandDims(resizedTensor));
+        let arrayOutput = await tensorOutput.array();
+        
+        console.log(arrayOutput);
+
+        const sol_bilek = arrayOutput[0][0][9][0]; // y koordinatlarını aldım
+        const sol_omuz  = arrayOutput[0][0][5][0]; 
+
+        moveBird(sol_bilek, sol_omuz);
+
+        // Tensörleri bellekten temizleyerek sızıntıyı önle! (Önemli!)
+        imageTensor.dispose();
+        croppedTensor.dispose();
+        resizedTensor.dispose();
+        tensorOutput.dispose();
+
+
+        // Tarayıcı bir sonraki kareyi çizmeye hazır olduğunda bu fonksiyonu TEKRAR ÇAĞIR.
+        // Bu, saniyede yaklaşık 60 kez tekrarlanarak akıcı bir video analizi sağlar.
+        window.requestAnimationFrame(runPredictionLoop);
+    }
+
+}
+
+
+
+// Her şeyi başlatmak için ilk fonksiyonu çağır
+setupWebcamAndModel();

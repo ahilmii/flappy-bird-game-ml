@@ -1,9 +1,33 @@
 body {
-    font-family: 'Courier New', Courier, monospace;
-    text-align: center;
+  font-family: "Courier New", Courier, monospace;
+  text-align: center;
 }
 
 #board {
-    /* background-color: skyblue; */
-    background-image: url("./flappybirdbg.png");
+  /* background-color: skyblue; */
+  background-image: url("./flappybirdbg.png");
+}
+
+/* Kapsayıcı div'i göreceli (relative) konumlandırıyoruz.
+        Bu, içindeki mutlak (absolute) konumlandırılmış elemanlar için
+        bir referans noktası olmasını sağlar. */
+#container {
+  position: relative;
+  width: 640px; /* Resimle aynı genişlikte */
+  display: flex;
+  flex: 1;
+  justify-content: space-around;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 60px;
+
+}
+
+#myCanvas {
+  /* Mutlak konumlandırma, elemanları normal akıştan çıkarır
+          ve üst üste binmelerine olanak tanır. */
+  position: absolute;
+  top: 0;
+  left: 0;
 }
