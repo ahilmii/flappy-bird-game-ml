@@ -1,7 +1,14 @@
 body {
   font-family: "Courier New", Courier, monospace;
   text-align: center;
+  background-color: #8e997d;
 }
+
+h2 {
+  margin:15px 0px;
+  color: #f5f5ff;
+}
+
 
 #board {
   /* background-color: skyblue; */
@@ -13,20 +20,16 @@ body {
         bir referans noktası olmasını sağlar. */
 #container {
   position: relative;
-  width: 640px; /* Resimle aynı genişlikte */
   display: flex;
   flex: 1;
-  justify-content: space-around;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 60px;
-
+  gap: 30px;
 }
 
 #myCanvas {
-  /* Mutlak konumlandırma, elemanları normal akıştan çıkarır
-          ve üst üste binmelerine olanak tanır. */
+
   position: absolute;
   top: 0;
   left: 0;

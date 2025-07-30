@@ -4,8 +4,6 @@ const video = document.getElementById('webcam');
 let movenet;
 
 
-
-
 let board;
 
 let boardWidth = 360;
@@ -212,8 +210,6 @@ function detectCollision(a, b) {
 
 }
 
-//  const sol_omuz = arrayOutput[0][0][5][0]; // henüz kullanmadım
-//  const sol_bilek = arrayOutput[0][0][9][0]; // y koordinatları
 
 async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazır eden ana fonksiyon
     
@@ -280,8 +276,6 @@ async function runPredictionLoop() {
     }
 
 }
-
-
 
 // Her şeyi başlatmak için ilk fonksiyonu çağır
 setupWebcamAndModel();
