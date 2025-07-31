@@ -5,14 +5,12 @@ let movenet;
 
 
 let board;
-
 let boardWidth = 360;
 let boardHeight = 640;
 let context;
 
 let birdWidth  = 34;
 let birdHeight = 24;
-
 let birdX = boardWidth / 8; // başlangıç konumu
 let birdY = boardHeight / 2;
 let birdImg;
@@ -43,35 +41,36 @@ let gravity = 0.2;
 let gameOver = false;
 let score = 0;
 
+let canFlap = true; // Zıplama eyleminin yapılıp yapılamayacağını kontrol eder
+
+
 window.onload = function () {
     board        = document.getElementById("board");
     board.height = boardHeight; 
     board.width  = boardWidth;
     context      = board.getContext("2d"); // used for drawing on the board 
 
-    // draw flappy bird
-    context.fillStyle = "green";
-    context.fillRect(bird.x, bird.y, birdWidth, birdHeight);
-
-
-    // load images
     birdImg = new Image();
     birdImg.src = "./flappybird.png";
-    birdImg.onload = function () {
-        context.drawImage(birdImg, bird.x, bird.y, birdWidth, birdHeight);    
-    }
 
     topPipeImg = new Image();
     topPipeImg.src = "./toppipe.png";
-
+    
     bottomPipeImg = new Image();
     bottomPipeImg.src = "./bottompipe.png";
 
+    // Olay dinleyicileri
+    document.addEventListener("keydown", (e) => {
+        if (e.code === "Space") {
+            jump();
+        }
+    });
+
+
+    // Oyun ve MoveNet'i başlat
+    setupWebcamAndModel();
     requestAnimationFrame(update);
     setInterval(placePipes, 1500); // every 1.5 seconds
-
-    document.addEventListener("keydown", moveBird);
-
 }
 
 function update() {
@@ -84,7 +83,6 @@ function update() {
 
     // bird
     velocityY += gravity;
-    bird.y    += velocityY;
     bird.y     = Math.max(bird.y + velocityY, 0); // eğer kuş canvas'ın üst sınırının yukarısına çıkarsa negatif bir değer almış olur dolayısıyla fonc 0 döndürür.
                                                   // eğer canvas içerisinde başka herhangi bir konumda ise pozitif bir değer demektir ve sol taraf çalışır.  
     context.drawImage(birdImg, bird.x, bird.y, birdWidth, birdHeight);
@@ -117,17 +115,15 @@ function update() {
 
 
     context.fillStyle = "white";
-    context.font      = "45px sans-serif";
+    context.font = "45px 'Press Start 2P'";
     context.fillText(score, 5, 45);
+    context.shadowColor = 'black';
+    context.shadowBlur = 7;
 
     if (gameOver) {
         context.fillText(`SCORE ${score}`, 50, 240);
         context.fillText("GAME OVER", 50, 300);
-        
     }
-
-
-
 }
 
 
@@ -168,28 +164,29 @@ function placePipes() {
     }
 
     pipeArray.push(bottomPipe);
-
-
 }
 
+/*
+yeni zıplama fonksiyonu, hem klavye hem de MoveNet bu fonksiyonu çağırır
+*/
 
+function jump() {
 
-function moveBird(solbilek, solomuz) {
-    if (solbilek < solomuz) {
-        // jump
-        velocityY = -3.5;
-    
-        // reset game
-        if (gameOver) {
-            bird.y = birdY;
-            pipeArray = [];
-            score = 0;
-            gameOver = false;
-        }
-        
-    
+    if(!gameOver && canFlap) {
+        velocityY = -6;
+        canFlap   = false; // zıplama yapıldı bir sonrakine izin verme (şimdilik) -- sonsuz zıplamayı engellemek için  
+    }
+
+    // eğer oyun bittiyse her şeyi başlangıç durumuna sıfırlıyoruz.
+    if (gameOver) { 
+        bird.y    = birdY;
+        pipeArray = [];
+        score     = 0;
+        gameOver  = false;
+        canFlap   = true; // oyuna yeniden başlarken zıplama kilidini açıyoruz.  
     }
 }
+
 
 
 function detectCollision(a, b) {
@@ -220,14 +217,26 @@ async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazı
         });
 
         video.srcObject = stream;
+
+        await new Promise( (resolve) => {
+            video.onloadedmetadata = () => {
+                resolve();
+            };
+        }); 
+        /* 
+        Kamera akışı video elementine atandıktan sonra, video dosyasının meta verileri (örneğin, genişlik ve yükseklik gibi bilgiler) 
+        yüklenene kadar beklemek. Yani, video akışı gerçekten hazır olmadan sonraki işlemlere geçilmez.
+        Bu, video ile ilgili işlemlerde (örneğin, boyutları almak veya tensöre dönüştürmek gibi) hata olmaması için gereklidi
+        */
+
     } catch (err) {
         console.log("kamera başlatılamadı: " + err);
+        alert("Lütfen kamera erişimine izin verin.");
         return;
     }       
 
     movenet = await tf.loadGraphModel(MODEL_PATH, {fromTFHub: true});
-    video.addEventListener('loadeddata', runPredictionLoop())     // 3. Video oynamaya hazır olduğunda, tahmin döngüsünü başlat
-
+    runPredictionLoop(); // burada neden addEventListener kaldırdık?
 }
 
 
@@ -256,26 +265,47 @@ async function runPredictionLoop() {
         let tensorOutput = movenet.execute(tf.expandDims(resizedTensor));
         let arrayOutput = await tensorOutput.array();
         
-        console.log(arrayOutput);
+        handlePose(arrayOutput);
 
-        const sol_bilek = arrayOutput[0][0][9][0]; // y koordinatlarını aldım
-        const sol_omuz  = arrayOutput[0][0][5][0]; 
-
-        moveBird(sol_bilek, sol_omuz);
+        // console.log(arrayOutput);
 
         // Tensörleri bellekten temizleyerek sızıntıyı önle! (Önemli!)
-        imageTensor.dispose();
-        croppedTensor.dispose();
-        resizedTensor.dispose();
-        tensorOutput.dispose();
+        tf.dispose([imageTensor, croppedTensor, resizedTensor, tensorOutput]);
 
 
         // Tarayıcı bir sonraki kareyi çizmeye hazır olduğunda bu fonksiyonu TEKRAR ÇAĞIR.
         // Bu, saniyede yaklaşık 60 kez tekrarlanarak akıcı bir video analizi sağlar.
-        window.requestAnimationFrame(runPredictionLoop);
     }
-
+    window.requestAnimationFrame(runPredictionLoop);
 }
 
-// Her şeyi başlatmak için ilk fonksiyonu çağır
-setupWebcamAndModel();
+/* 
+Eğer herhangi bir anda, sadece tek bir kare için bile olsa, movenet modeli henüz hazır değilse veya video akışında anlık bir duraksama olup 
+video.readyState 3'ün altına düşerse, if bloğu çalışmaz. Dolayısıyla requestAnimationFrame de çağrılmaz. Bu durumda tüm tahmin döngüsü sonsuza dek durur. 
+Zincir bir kere kırıldı mı bir daha başlamaz.
+
+if bloğunun dışında olduğunda ise: döngüyü çok daha sağlam hale getirir. if koşulu sağlanmasa bile, fonksiyon bir sonraki karede tekrar çalışmak için 
+kendini yine de planlar. Böylece video hazır olduğunda veya model yüklendiğinde, döngü kaldığı yerden sorunsuzca devam eder. 
+Döngünün anlık bir hatadan dolayı tamamen ölmesini engellemiş oluruz.
+*/
+
+function handlePose(arrayOutput) {
+    
+    // gerekli anahtar noktaların koordinatlarını alıyoruz.
+
+    const sagBilek = arrayOutput[0][0][10][0]; // y koordinatlarını aldım
+    const sagOmuz  = arrayOutput[0][0][6][0]; 
+
+    const sagBilekConfiidence = arrayOutput[0][0][10][2]; //güven skorlarını aldık.
+    const sagOmuzConfidence   = arrayOutput[0][0][6][2]; 
+
+
+    if (0.2 < sagBilekConfiidence && 0.2 < sagOmuzConfidence) {
+        if (sagBilek < sagOmuz) { // bilek omuzun üzerindeyken zıpla.
+            jump();
+        } else {
+            canFlap = true;       // eğer omuz yukarıdaysa tekrar zıplamaya izin ver.
+        }
+
+    }
+}
