@@ -1,36 +1,83 @@
 body {
-  font-family: "Courier New", Courier, monospace;
+  font-family: 'Press Start 2P', cursive;
   text-align: center;
-  background-color: #8e997d;
-}
-
-h2 {
-  margin:15px 0px;
+  background-color: #1e1e2e; /* Koyu tema */
   color: #f5f5ff;
-}
-
-
-#board {
-  /* background-color: skyblue; */
-  background-image: url("./flappybirdbg.png");
-}
-
-/* Kapsayıcı div'i göreceli (relative) konumlandırıyoruz.
-        Bu, içindeki mutlak (absolute) konumlandırılmış elemanlar için
-        bir referans noktası olmasını sağlar. */
-#container {
-  position: relative;
   display: flex;
-  flex: 1;
-  justify-content: center;
-  flex-wrap: nowrap;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #50fa7b; /* Yeşil tonu */
+  text-shadow: 3px 3px 0px #ff79c6; /* Pembe gölge */
+  margin-bottom: 20px;
+}
+
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Elemanları yukarıdan hizala */
+  flex-wrap: wrap;/* Küçük ekranlarda alt satıra geç */
   gap: 30px;
 }
 
-#myCanvas {
+/* Oyun ve video elemanlarını saran kapsayıcı */
+.video-container, .game-container {
+  border: 5px solid #44475a; /* Çerçeve */
+  border-radius: 10px;
+  overflow: hidden; /* Köşelerden taşmayı engelle */
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+}
 
-  position: absolute;
-  top: 0;
-  left: 0;
+.game-container {
+  /* Boyutlar canvas tarafından belirlenecek */
+  line-height: 0; /* Canvas altındaki olası boşluğu kaldırır */
+}
+
+.video-container {
+  width: 480px;
+  height: 360px;
+}
+
+#board {
+  background-image: url("./flappybirdbg.png");
+}
+
+#webcam {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Videoyu alana sığdır */
+  transform: scaleX(-1); /* Görüntüyü ayna gibi yansıt, daha sezgisel kontrol için */
+}
+
+.info-card {
+  width: 300px;
+  padding: 20px;
+  background-color: #282a36; /* Kart arka planı */
+  border: 5px solid #44475a;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+}
+
+.info-card h2 {
+  color: #ff79c6; /* Pembe başlık */
+  font-size: 1.2rem;
+  margin-top: 0;
+}
+
+.info-card p {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #bd93f9; /* Morumsu metin */
+}
+
+.info-card hr {
+  border: 1px solid #44475a;
 }
