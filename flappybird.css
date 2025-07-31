@@ -1,5 +1,6 @@
 body {
-  font-family: 'Press Start 2P', cursive;
+  /* font-family: 'Press Start 2P', cursive; */
+  font-family: 'Minecraftia', sans-serif;
   text-align: center;
   background-color: #1e1e2e; /* Koyu tema */
   color: #f5f5ff;
@@ -11,6 +12,13 @@ body {
   margin: 0;
   padding: 20px;
   box-sizing: border-box;
+}
+
+@font-face {
+  font-family: 'Minecraftia';
+  src: url('/assets/Minecraftia-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
 h1 {
@@ -47,7 +55,7 @@ h1 {
 }
 
 #board {
-  background-image: url("./flappybirdbg.png");
+  background-image: url("./assets/flappybirdbg.png");
 }
 
 #webcam {
@@ -78,6 +86,82 @@ h1 {
   color: #bd93f9; /* Morumsu metin */
 }
 
+p#kolsecim {
+  font-size: 14px;
+}
+
 .info-card hr {
   border: 1px solid #44475a;
+}
+
+/* From Uiverse.io by andrew-demchenk0 */ 
+.switch {
+  --input-focus: #2d8cf0;
+  --bg-color: #fff;
+  --bg-color-alt: #666;
+  --main-color: #323232;
+  --input-out-of-focus: #ccc;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  width: 150px;
+  height: 36px;
+  transform: translateX(calc(50% - 10px));
+}
+
+.toggle {
+  opacity: 0;
+}
+
+.slider {
+  box-sizing: border-box;
+  border-radius: 100px;
+  border: 2px solid var(--main-color);
+  box-shadow: 4px 4px var(--main-color);
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--input-out-of-focus);
+  transition: 0.3s;
+}
+
+.slider:before {
+  content: "sol";
+  box-sizing: border-box;
+  height: 30px;
+  width: 30px;
+  position: absolute;
+  left: 2px;
+  bottom: 1px;
+  border: 2px solid var(--main-color);
+  border-radius: 100px;
+  background-color: var(--bg-color);
+  color: var(--main-color);
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 31px;
+  transition: 0.3s;
+}
+
+.toggle:checked + .slider {
+  background-color: var(--input-focus);
+  transform: translateX(-19px);
+}
+
+.toggle:checked + .slider:before {
+  content: "sağ";
+  transform: translateX(19px);
+}
+
+.kolsecim {
+  display: flex;
+  justify-content: space-around;
+  gap: 30px;
 }

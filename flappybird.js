@@ -2,6 +2,8 @@ const MODEL_PATH = 'https://tfhub.dev/google/tfjs-model/movenet/singlepose/light
 const video = document.getElementById('webcam');
 
 let movenet;
+let toggle = document.getElementById('toggle');
+
 
 
 let board;
@@ -34,9 +36,9 @@ let topPipeImg;
 let bottomPipeImg;
 
 //pyhsics
-let velocityX = -2; // pipes moving left speed
+let velocityX = -1.8; // pipes moving left speed
 let velocityY = 0; // bird jumping speed
-let gravity = 0.2;
+let gravity = 0.18;
 
 let gameOver = false;
 let score = 0;
@@ -51,13 +53,13 @@ window.onload = function () {
     context      = board.getContext("2d"); // used for drawing on the board 
 
     birdImg = new Image();
-    birdImg.src = "./flappybird.png";
+    birdImg.src = "./assets/flappybird.png";
 
     topPipeImg = new Image();
-    topPipeImg.src = "./toppipe.png";
+    topPipeImg.src = "./assets/toppipe.png";
     
     bottomPipeImg = new Image();
-    bottomPipeImg.src = "./bottompipe.png";
+    bottomPipeImg.src = "./assets/bottompipe.png";
 
     // Olay dinleyicileri
     document.addEventListener("keydown", (e) => {
@@ -66,11 +68,10 @@ window.onload = function () {
         }
     });
 
-
     // Oyun ve MoveNet'i başlat
     setupWebcamAndModel();
     requestAnimationFrame(update);
-    setInterval(placePipes, 1500); // every 1.5 seconds
+    setInterval(placePipes, 2000); // every 1.5 seconds
 }
 
 function update() {
@@ -140,7 +141,7 @@ function placePipes() {
     // eğer random sayodan 0 gelirse uzunluk -128 olur.
     // eğer 1 gelirse 0 - 128 - 256 = -384  
     // uzunluğu -128 ile -384 arasında değişir. yani boruların bir kısmını gizlemiş olduk.
-    let openingSpace = board.height / 4;
+    let openingSpace = board.height / 3;
 
 
     let topPipe = {
@@ -173,7 +174,7 @@ yeni zıplama fonksiyonu, hem klavye hem de MoveNet bu fonksiyonu çağırır
 function jump() {
 
     if(!gameOver && canFlap) {
-        velocityY = -6;
+        velocityY = -5.5;
         canFlap   = false; // zıplama yapıldı bir sonrakine izin verme (şimdilik) -- sonsuz zıplamayı engellemek için  
     }
 
@@ -231,7 +232,7 @@ async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazı
 
     } catch (err) {
         console.log("kamera başlatılamadı: " + err);
-        alert("Lütfen kamera erişimine izin verin.");
+        // alert("Lütfen kamera erişimine izin verin.");
         return;
     }       
 
@@ -292,20 +293,43 @@ Döngünün anlık bir hatadan dolayı tamamen ölmesini engellemiş oluruz.
 function handlePose(arrayOutput) {
     
     // gerekli anahtar noktaların koordinatlarını alıyoruz.
-
     const sagBilek = arrayOutput[0][0][10][0]; // y koordinatlarını aldım
     const sagOmuz  = arrayOutput[0][0][6][0]; 
-
     const sagBilekConfiidence = arrayOutput[0][0][10][2]; //güven skorlarını aldık.
     const sagOmuzConfidence   = arrayOutput[0][0][6][2]; 
 
+    
+    const solBilek = arrayOutput[0][0][9][0]; // y koordinatlarını aldım
+    const solOmuz  = arrayOutput[0][0][5][0]; 
+    const solBilekConfiidence = arrayOutput[0][0][9][2]; //güven skorlarını aldık.
+    const solOmuzConfidence   = arrayOutput[0][0][5][2]; 
 
-    if (0.2 < sagBilekConfiidence && 0.2 < sagOmuzConfidence) {
-        if (sagBilek < sagOmuz) { // bilek omuzun üzerindeyken zıpla.
-            jump();
-        } else {
-            canFlap = true;       // eğer omuz yukarıdaysa tekrar zıplamaya izin ver.
+
+    if (toggle.checked == true) { // yani sağ seçili ise
+        if (0.2 < sagBilekConfiidence && 0.2 < sagOmuzConfidence) {
+            if (sagBilek < sagOmuz) { // bilek omuzun üzerindeyken zıpla.
+                jump();
+            } else {
+                canFlap = true;       // eğer omuz yukarıdaysa tekrar zıplamaya izin ver.
+            }
+
         }
 
+    } else { // yani sol seçili ise
+
+        if (0.2 < solBilekConfiidence && 0.2 < solOmuzConfidence) {
+            if (solBilek < solOmuz) { // bilek omuzun üzerindeyken zıpla.
+                jump();
+            } else {
+                canFlap = true;       // eğer omuz yukarıdaysa tekrar zıplamaya izin ver.
+            }
+        }
     }
+
+
+
+
+    
+
+
 }
