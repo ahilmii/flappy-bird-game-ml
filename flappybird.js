@@ -232,7 +232,7 @@ async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazı
 
     } catch (err) {
         console.log("kamera başlatılamadı: " + err);
-        // alert("Lütfen kamera erişimine izin verin.");
+        alert("Lütfen kamera erişimine izin verin.");
         return;
     }       
 
