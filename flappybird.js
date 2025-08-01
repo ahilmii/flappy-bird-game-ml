@@ -221,41 +221,72 @@ async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazı
 }
 
 
-async function runPredictionLoop() {
+// async function runPredictionLoop() {
 
-    if (movenet && video.readyState >= 3) { 
+//     if (movenet && video.readyState >= 3) { 
 
-        let imageTensor = tf.browser.fromPixels(video);   
+//         let imageTensor = tf.browser.fromPixels(video);   
 
-        const videoHeight = video.videoHeight;
-        const videoWidth = video.videoWidth;
+//         const videoHeight = video.videoHeight;
+//         const videoWidth = video.videoWidth;
 
-        const cropSize = Math.min(videoHeight, videoWidth); 
+//         const cropSize = Math.min(videoHeight, videoWidth); 
 
-        const cropStartPoint = [          
+//         const cropStartPoint = [          
 
-            (videoHeight - cropSize) / 2, 
-            (videoWidth - cropSize) / 2,  
-            0                            
-        ];
-        let croppedTensor  = tf.slice(imageTensor, cropStartPoint, [cropSize, cropSize, 3]); 
+//             (videoHeight - cropSize) / 2, 
+//             (videoWidth - cropSize) / 2,  
+//             0                            
+//         ];
+//         let croppedTensor  = tf.slice(imageTensor, cropStartPoint, [cropSize, cropSize, 3]); 
 
-        let resizedTensor = tf.image.resizeBilinear(croppedTensor, [192, 192], true).toInt(); 
+//         let resizedTensor = tf.image.resizeBilinear(croppedTensor, [192, 192], true).toInt(); 
 
-         // 4. Batch boyutu ekle
-        let tensorOutput = movenet.execute(tf.expandDims(resizedTensor));
-        let arrayOutput = await tensorOutput.array();
+//          // 4. Batch boyutu ekle
+//         let tensorOutput = movenet.execute(tf.expandDims(resizedTensor));
+//         let arrayOutput = await tensorOutput.array();
         
+//         handlePose(arrayOutput);
+
+
+//         tf.dispose([imageTensor, croppedTensor, resizedTensor, tensorOutput]);
+
+
+//     }
+//     window.requestAnimationFrame(runPredictionLoop);
+// }
+
+
+async function runPredictionLoop() {
+  if (movenet && video.readyState >= 3) {
+    tf.tidy(() => {
+      let imageTensor = tf.browser.fromPixels(video);
+      const videoHeight = video.videoHeight;
+      const videoWidth = video.videoWidth;
+      const cropSize = Math.min(videoHeight, videoWidth);
+      const cropStartPoint = [
+        (videoHeight - cropSize) / 2,
+        (videoWidth - cropSize) / 2,
+        0
+      ];
+      let croppedTensor = tf.slice(imageTensor, cropStartPoint, [cropSize, cropSize, 3]);
+      let resizedTensor = tf.image.resizeBilinear(croppedTensor, [192, 192], true).toInt();
+      let tensorOutput = movenet.execute(tf.expandDims(resizedTensor));
+
+      // Bu kısımda hala arrayOutput'u almanız gerekiyor,
+      // ancak `tensorOutput.array()` çağrısı tensörün kendisini temizlemez.
+      // Bu yüzden `tensorOutput`'u ayrı olarak temizlemeniz gerekir.
+      tensorOutput.array().then(arrayOutput => {
         handlePose(arrayOutput);
-
-
-        tf.dispose([imageTensor, croppedTensor, resizedTensor, tensorOutput]);
-
-
-    }
-    window.requestAnimationFrame(runPredictionLoop);
+      });
+      
+      // `tf.tidy` dışında kalan tensor'leri manuel olarak temizlememiz gerek.
+      // Örneğin, `tensorOutput`'u kullanıldıktan sonra temizleyebilirsiniz.
+      tf.dispose(tensorOutput);
+    });
+  }
+  window.requestAnimationFrame(runPredictionLoop);
 }
-
 
 function handlePose(arrayOutput) {
     
