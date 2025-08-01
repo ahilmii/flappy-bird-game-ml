@@ -1,8 +1,7 @@
 body {
-  /* font-family: 'Press Start 2P', cursive; */
   font-family: 'Minecraftia', sans-serif;
   text-align: center;
-  background-color: #1e1e2e; /* Koyu tema */
+  background-color: #1e1e2e; 
   color: #f5f5ff;
   display: flex;
   flex-direction: column;
@@ -24,7 +23,7 @@ body {
 h1 {
   font-size: 2.5rem;
   color: #50fa7b; /* Yeşil tonu */
-  text-shadow: 3px 3px 0px #ff79c6; /* Pembe gölge */
+  text-shadow: 3px 3px 0px #ff79c6; 
   margin-bottom: 20px;
 }
 
@@ -36,7 +35,6 @@ h1 {
   gap: 30px;
 }
 
-/* Oyun ve video elemanlarını saran kapsayıcı */
 .video-container, .game-container {
   border: 5px solid #44475a; /* Çerçeve */
   border-radius: 10px;
@@ -45,8 +43,7 @@ h1 {
 }
 
 .game-container {
-  /* Boyutlar canvas tarafından belirlenecek */
-  line-height: 0; /* Canvas altındaki olası boşluğu kaldırır */
+  line-height: 0; 
 }
 
 .video-container {
@@ -62,7 +59,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover; /* Videoyu alana sığdır */
-  transform: scaleX(-1); /* Görüntüyü ayna gibi yansıt, daha sezgisel kontrol için */
+  transform: scaleX(-1); 
 }
 
 .info-card {
@@ -75,7 +72,7 @@ h1 {
 }
 
 .info-card h2 {
-  color: #ff79c6; /* Pembe başlık */
+  color: #ff79c6; 
   font-size: 1.2rem;
   margin-top: 0;
 }
@@ -83,7 +80,7 @@ h1 {
 .info-card p {
   font-size: 0.8rem;
   line-height: 1.5;
-  color: #bd93f9; /* Morumsu metin */
+  color: #bd93f9; 
 }
 
 p#kolsecim {

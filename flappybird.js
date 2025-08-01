@@ -5,7 +5,6 @@ let movenet;
 let toggle = document.getElementById('toggle');
 
 
-
 let board;
 let boardWidth = 360;
 let boardHeight = 640;
@@ -68,16 +67,10 @@ window.onload = function () {
         }
     });
 
-    // Oyun ve MoveNet'i başlat
     setupWebcamAndModel();
     requestAnimationFrame(update);
-    setInterval(placePipes, 2000); // every 1.5 seconds
+    setInterval(placePipes, 2000); 
 }
-
-
-
-let saveScoreBtn = document.getElementById('saveScoreBtn');
-let scoreToSave  = 0;
 
 
 function update() {
@@ -131,10 +124,7 @@ function update() {
     context.shadowColor = 'black';
     context.shadowBlur = 7;
 
-    // if (gameOver) {
-    //     context.fillText(`SCORE ${score}`, 50, 240);
-    //     context.fillText("GAME OVER", 50, 300);
-    // }
+
 }
 
 
@@ -176,11 +166,6 @@ function placePipes() {
     pipeArray.push(bottomPipe);
 }
 
-/*
-yeni zıplama fonksiyonu, hem klavye hem de MoveNet bu fonksiyonu çağırır
-*/
-
-
 
 function jump() {
 
@@ -206,24 +191,11 @@ function detectCollision(a, b) {
     return      a.x < b.x + b.width && b.x < a.x + a.width 
                 && 
                 a.y < b.y + b.height && b.y < a.y + a.height
-
-    
-    /* 
-    detectCollision(bird, pipe) biçiminde çalıştırıyorum. fonksiyon temel olarak şunu yapıyor:
-    a.x < b.x + b.width: a nesnesinin sol kenarı, b nesnesinin sağ kenarından daha solda mı?
-    b.x < a.x + a.width: b nesnesinin sol kenarı, a nesnesinin sağ kenarından daha solda mı?
-    a.y < b.y + b.height: a nesnesinin üst kenarı, b nesnesinin alt kenarından daha yukarıda mı?
-    b.y < a.y + a.height: b nesnesinin üst kenarı, a nesnesinin alt kenarından daha yukarıda mı?
-    
-    Bu dört koşul "aynı anda" sağlanıyorsa, iki dikdörtgenin alanları kesişiyor demektir, yani çarpışma var.
-    */                
-
 }
 
 
 async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazır eden ana fonksiyon
     
-    // 1. Kullanıcıdan kamera izni iste ve video akışını başlat
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             'video': true
@@ -236,11 +208,7 @@ async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazı
                 resolve();
             };
         }); 
-        /* 
-        Kamera akışı video elementine atandıktan sonra, video dosyasının meta verileri (örneğin, genişlik ve yükseklik gibi bilgiler) 
-        yüklenene kadar beklemek. Yani, video akışı gerçekten hazır olmadan sonraki işlemlere geçilmez.
-        Bu, video ile ilgili işlemlerde (örneğin, boyutları almak veya tensöre dönüştürmek gibi) hata olmaması için gereklidi
-        */
+
 
     } catch (err) {
         console.log("kamera başlatılamadı: " + err);
@@ -249,30 +217,30 @@ async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazı
     }       
 
     movenet = await tf.loadGraphModel(MODEL_PATH, {fromTFHub: true});
-    runPredictionLoop(); // burada neden addEventListener kaldırdık?
+    runPredictionLoop();
 }
 
 
 async function runPredictionLoop() {
 
-    if (movenet && video.readyState >= 3) { // readyState, videonun oynatılmaya hazır olup olmadığı hakkında bilgi verir.
+    if (movenet && video.readyState >= 3) { 
 
-        let imageTensor = tf.browser.fromPixels(video);     // 1. Video'nun o anki karesini bir tensöre dönüştür
+        let imageTensor = tf.browser.fromPixels(video);   
 
         const videoHeight = video.videoHeight;
         const videoWidth = video.videoWidth;
 
-        const cropSize = Math.min(videoHeight, videoWidth); // Kırpılacak karenin boyutunu, videonun en küçük kenarı olarak belirle.
+        const cropSize = Math.min(videoHeight, videoWidth); 
 
-        const cropStartPoint = [          // Kırpmanın başlayacağı noktaları, kareyi videonun merkezine oturtacak şekilde hesapla.
+        const cropStartPoint = [          
 
-            (videoHeight - cropSize) / 2, // Y (dikey) başlangıç noktası
-            (videoWidth - cropSize) / 2,  // X (yatay) başlangıç noktası
-            0                             // Renk kanalı başlangıcı (her zaman 0)
+            (videoHeight - cropSize) / 2, 
+            (videoWidth - cropSize) / 2,  
+            0                            
         ];
-        let croppedTensor  = tf.slice(imageTensor, cropStartPoint, [cropSize, cropSize, 3]); // 2. Görüntüyü kırp (aynı mantıkla)
+        let croppedTensor  = tf.slice(imageTensor, cropStartPoint, [cropSize, cropSize, 3]); 
 
-        let resizedTensor = tf.image.resizeBilinear(croppedTensor, [192, 192], true).toInt(); // 3. Yeniden boyutlandır
+        let resizedTensor = tf.image.resizeBilinear(croppedTensor, [192, 192], true).toInt(); 
 
          // 4. Batch boyutu ekle
         let tensorOutput = movenet.execute(tf.expandDims(resizedTensor));
@@ -280,27 +248,14 @@ async function runPredictionLoop() {
         
         handlePose(arrayOutput);
 
-        // console.log(arrayOutput);
 
-        // Tensörleri bellekten temizleyerek sızıntıyı önle! (Önemli!)
         tf.dispose([imageTensor, croppedTensor, resizedTensor, tensorOutput]);
 
 
-        // Tarayıcı bir sonraki kareyi çizmeye hazır olduğunda bu fonksiyonu TEKRAR ÇAĞIR.
-        // Bu, saniyede yaklaşık 60 kez tekrarlanarak akıcı bir video analizi sağlar.
     }
     window.requestAnimationFrame(runPredictionLoop);
 }
 
-/* 
-Eğer herhangi bir anda, sadece tek bir kare için bile olsa, movenet modeli henüz hazır değilse veya video akışında anlık bir duraksama olup 
-video.readyState 3'ün altına düşerse, if bloğu çalışmaz. Dolayısıyla requestAnimationFrame de çağrılmaz. Bu durumda tüm tahmin döngüsü sonsuza dek durur. 
-Zincir bir kere kırıldı mı bir daha başlamaz.
-
-if bloğunun dışında olduğunda ise: döngüyü çok daha sağlam hale getirir. if koşulu sağlanmasa bile, fonksiyon bir sonraki karede tekrar çalışmak için 
-kendini yine de planlar. Böylece video hazır olduğunda veya model yüklendiğinde, döngü kaldığı yerden sorunsuzca devam eder. 
-Döngünün anlık bir hatadan dolayı tamamen ölmesini engellemiş oluruz.
-*/
 
 function handlePose(arrayOutput) {
     
