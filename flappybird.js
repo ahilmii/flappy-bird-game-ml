@@ -4,6 +4,7 @@ const video = document.getElementById('webcam');
 let movenet;
 let toggle = document.getElementById('toggle');
 
+let restartTimeOutSet = false;
 
 
 let board;
@@ -74,9 +75,31 @@ window.onload = function () {
     setInterval(placePipes, 2000); // every 1.5 seconds
 }
 
+
+
+let saveScoreBtn = document.getElementById('saveScoreBtn');
+let scoreToSave  = 0;
+
+
 function update() {
     requestAnimationFrame(update);
+
     if (gameOver) {
+        context.fillText(`SCORE ${score}`, 50, 240);
+        context.fillText("GAME OVER", 50, 300);
+        
+        saveScoreBtn.style.display = "block";
+        scoreToSave = score;        
+        
+        if (!restartTimeOutSet) {           // Eğer henüz zamanlayıcı başlatılmamışsa
+            restartTimeOutSet = true; 
+            setTimeout(() => {
+                restartGame();
+                restartTimeOutSet = false;  // Kilidi kaldır
+            }, 3000);
+        }
+        
+        
         return;
     }
 
@@ -121,11 +144,23 @@ function update() {
     context.shadowColor = 'black';
     context.shadowBlur = 7;
 
-    if (gameOver) {
-        context.fillText(`SCORE ${score}`, 50, 240);
-        context.fillText("GAME OVER", 50, 300);
-    }
+    // if (gameOver) {
+    //     context.fillText(`SCORE ${score}`, 50, 240);
+    //     context.fillText("GAME OVER", 50, 300);
+    // }
 }
+
+
+saveScoreBtn.addEventListener("click", () => {
+    let playerName = prompt("kullanıcı adını giriniz");
+    
+    if (playerName) {
+        // firebase buraya
+        console.log("oyuncu adi", playerName, "skor: ", scoreToSave);
+        // butonu tekrar gizle
+        saveScoreBtn.style.display = "none";
+    }
+})
 
 
 function placePipes() {
@@ -133,8 +168,6 @@ function placePipes() {
     if (gameOver) {
         return;
     }
-
-
 
     let randomPipeY = pipeY - (pipeHeight / 4) - (Math.random() * (pipeHeight / 2)); 
     // pipeY = 0. pipeHeight = 512 -->  
@@ -171,6 +204,18 @@ function placePipes() {
 yeni zıplama fonksiyonu, hem klavye hem de MoveNet bu fonksiyonu çağırır
 */
 
+
+function restartGame() {
+    bird.y    = birdY;
+    pipeArray = [];
+    score     = 0;
+    gameOver  = false;
+    canFlap   = true; // oyuna yeniden başlarken zıplama kilidini açıyoruz.  
+
+    // Oyun yeniden başladığında butonu gizle
+    saveScoreBtn.style.display = "none";
+}
+
 function jump() {
 
     if(!gameOver && canFlap) {
@@ -178,14 +223,6 @@ function jump() {
         canFlap   = false; // zıplama yapıldı bir sonrakine izin verme (şimdilik) -- sonsuz zıplamayı engellemek için  
     }
 
-    // eğer oyun bittiyse her şeyi başlangıç durumuna sıfırlıyoruz.
-    if (gameOver) { 
-        bird.y    = birdY;
-        pipeArray = [];
-        score     = 0;
-        gameOver  = false;
-        canFlap   = true; // oyuna yeniden başlarken zıplama kilidini açıyoruz.  
-    }
 }
 
 
