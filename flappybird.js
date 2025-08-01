@@ -4,7 +4,6 @@ const video = document.getElementById('webcam');
 let movenet;
 let toggle = document.getElementById('toggle');
 
-let restartTimeOutSet = false;
 
 
 let board;
@@ -87,19 +86,7 @@ function update() {
     if (gameOver) {
         context.fillText(`SCORE ${score}`, 50, 240);
         context.fillText("GAME OVER", 50, 300);
-        
-        saveScoreBtn.style.display = "block";
-        scoreToSave = score;        
-        
-        if (!restartTimeOutSet) {           // Eğer henüz zamanlayıcı başlatılmamışsa
-            restartTimeOutSet = true; 
-            setTimeout(() => {
-                restartGame();
-                restartTimeOutSet = false;  // Kilidi kaldır
-            }, 3000);
-        }
-        
-        
+                
         return;
     }
 
@@ -151,17 +138,6 @@ function update() {
 }
 
 
-saveScoreBtn.addEventListener("click", () => {
-    let playerName = prompt("kullanıcı adını giriniz");
-    
-    if (playerName) {
-        // firebase buraya
-        console.log("oyuncu adi", playerName, "skor: ", scoreToSave);
-        // butonu tekrar gizle
-        saveScoreBtn.style.display = "none";
-    }
-})
-
 
 function placePipes() {
 
@@ -205,22 +181,21 @@ yeni zıplama fonksiyonu, hem klavye hem de MoveNet bu fonksiyonu çağırır
 */
 
 
-function restartGame() {
-    bird.y    = birdY;
-    pipeArray = [];
-    score     = 0;
-    gameOver  = false;
-    canFlap   = true; // oyuna yeniden başlarken zıplama kilidini açıyoruz.  
-
-    // Oyun yeniden başladığında butonu gizle
-    saveScoreBtn.style.display = "none";
-}
 
 function jump() {
 
     if(!gameOver && canFlap) {
         velocityY = -5.5;
         canFlap   = false; // zıplama yapıldı bir sonrakine izin verme (şimdilik) -- sonsuz zıplamayı engellemek için  
+    }
+
+    // eğer oyun bittiyse her şeyi başlangıç durumuna sıfırlıyoruz.
+    if (gameOver) { 
+        bird.y    = birdY;
+        pipeArray = [];
+        score     = 0;
+        gameOver  = false;
+        canFlap   = true; // oyuna yeniden başlarken zıplama kilidini açıyoruz.  
     }
 
 }
@@ -362,11 +337,5 @@ function handlePose(arrayOutput) {
             }
         }
     }
-
-
-
-
-    
-
 
 }
