@@ -221,40 +221,7 @@ async function setupWebcamAndModel() { // Kamerayı başlatan ve her şeyi hazı
 }
 
 
-// async function runPredictionLoop() {
 
-//     if (movenet && video.readyState >= 3) { 
-
-//         let imageTensor = tf.browser.fromPixels(video);   
-
-//         const videoHeight = video.videoHeight;
-//         const videoWidth = video.videoWidth;
-
-//         const cropSize = Math.min(videoHeight, videoWidth); 
-
-//         const cropStartPoint = [          
-
-//             (videoHeight - cropSize) / 2, 
-//             (videoWidth - cropSize) / 2,  
-//             0                            
-//         ];
-//         let croppedTensor  = tf.slice(imageTensor, cropStartPoint, [cropSize, cropSize, 3]); 
-
-//         let resizedTensor = tf.image.resizeBilinear(croppedTensor, [192, 192], true).toInt(); 
-
-//          // 4. Batch boyutu ekle
-//         let tensorOutput = movenet.execute(tf.expandDims(resizedTensor));
-//         let arrayOutput = await tensorOutput.array();
-        
-//         handlePose(arrayOutput);
-
-
-//         tf.dispose([imageTensor, croppedTensor, resizedTensor, tensorOutput]);
-
-
-//     }
-//     window.requestAnimationFrame(runPredictionLoop);
-// }
 
 
 async function runPredictionLoop() {
