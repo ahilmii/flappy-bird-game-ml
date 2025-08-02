@@ -38,8 +38,4 @@ Projeyi [https://ahilmii.github.io/flappy-bird-game-ml/] adresinden direkt olara
 
 - Kullanıcıların hangi kolu kullanacağını seçmesini sağlayan Toggle Switch tasarımı [**andrew-demchenk0**](https://uiverse.io/andrew-demchenk0) tarafından oluşturulmuş ve [uiverse.io](https://uiverse.io) üzerinden paylaşılmıştır.
 
----
-
-## 📜 Lisans
-
-Bu proje **MIT Lisansı** ile lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakınız.
+Bana ulaşın: https://www.linkedin.com/in/ahilmiguler
